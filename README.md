@@ -1,18 +1,30 @@
 # META Options — Theta Decay Surface Model
 
-A quantitative options analysis project modelling **Black-Scholes theta decay** across strike/moneyness and time dimensions for META short-dated options in the final 3 days before expiry (Jan 27–29, 2026, expiry Jan 30).
+A quantitative options analysis project modelling **Black-Scholes theta decay** across three distinct volatility regimes in META's Q4 2025 earnings cycle — the final 3 days before a weekly expiry (Jan 27–29, 2026, expiry Jan 30).
 
 ## Overview
 
-This project builds a **3D theta surface** using real market data (bid/ask/IVM) scraped for META options across three consecutive trading days leading into a weekly expiry. The surface visualises how time decay accelerates as DTE → 0 and how it varies across moneyness.
+The core goal of this project was to **understand, model, and predict theta behavior during an earnings volatility regime** — how does time decay behave structurally when IV spikes into an event and then collapses after? META's Q4 2025 earnings created a textbook 3-regime environment within a single expiry cycle.
+
+The project builds a **3D theta surface** using real market data (bid/ask/IVM) and identifies three structurally distinct regimes, each with different theta dynamics driven by IV level, DTE, and event risk.
+
+## Volatility Regimes
+
+| Regime | Date | DTE | Avg IVM | ATM Call Theta | Characteristics |
+|---|---|---|---|---|---|
+| 🔵 **Pre-Earnings** | Jan 27 | 3d | ~78% | -$3.19/day | IV elevated, market positioning into event |
+| 🔴 **Earnings Day** | Jan 28 | 2d | ~95% | -$4.93/day | IV spikes on DeepSeek news + results uncertainty |
+| 🟢 **Post-Earnings** | Jan 29 | 1d | ~47% | -$3.52/day | Vol crush post-event, theta driven by DTE alone |
+
+The earnings day regime shows **54% higher ATM theta** than pre-earnings (-$4.93 vs -$3.19), despite only being 1 DTE closer to expiry — isolating the pure IV contribution to theta inflation.
 
 ## Key Features
 
 - Parses real options chain data (calls & puts) from CSV exports
 - Computes **Black-Scholes theta** ($/calendar day) for each strike
-- Plots a **3D interpolated surface**: Days-to-Expiry × Log-Moneyness × Theta
-- Cross-sectional slices by date showing the theta smile across moneyness
-- Captures the **DeepSeek volatility spike** on Jan 28 (IVM ~98% vs ~78% on Jan 27)
+- Plots a **3D interpolated surface**: Days-to-Expiry × Log-Moneyness × Theta, colored by regime
+- Cross-sectional slices per regime with annotated IVM levels
+- Isolates the **vol crush effect**: post-earnings theta drops despite DTE shrinking further
 
 ## Methodology
 
@@ -20,7 +32,7 @@ This project builds a **3D theta surface** using real market data (bid/ask/IVM) 
 |---|---|
 | Underlying | META (Meta Platforms) |
 | Expiry | January 30, 2026 |
-| Data dates | Jan 27, 28, 29, 2026 |
+| Data dates | Jan 27 (Pre), Jan 28 (Earnings), Jan 29 (Post) |
 | Risk-free rate | 4.25% (Fed Funds) |
 | Theta convention | $/calendar day (annual ÷ 365) |
 | Moneyness | Log-moneyness: ln(S/K) — ATM = 0 |
@@ -36,10 +48,10 @@ This project builds a **3D theta surface** using real market data (bid/ask/IVM) 
 
 ### Notable Observations
 
-- **ATM theta peaks** in magnitude and accelerates sharply as DTE: 3 → 2 → 1
-- **Jan 28 IVM spike (~98%)**: driven by the DeepSeek AI news event — theta is significantly elevated vs adjacent days
-- **Volatility skew** is visible: puts carry higher IVM than calls on Jan 29, reflected in the asymmetric theta surface
-- **OTM options** decay faster in relative terms near expiry — visible in the steep wings of the cross-sections
+- **Earnings Day theta is regime-driven, not just DTE-driven**: ATM theta is 54% higher on Jan 28 vs Jan 27 despite only 1 fewer day to expiry — IV is doing the heavy lifting
+- **Vol crush on Jan 29**: post-earnings IV collapses ~50%, pulling theta *down* even as DTE hits 1 — theta sellers on earnings day were maximally compensated
+- **Put skew persists post-earnings**: puts carry higher IVM than calls on Jan 29, reflecting residual tail-risk premium even 1 day out
+- **DeepSeek event**: the Jan 28 spike was compounded by the DeepSeek AI news hitting META — the theta surface captures both the earnings vol and the exogenous shock
 
 ## Data Limitations
 
@@ -61,7 +73,7 @@ A future improvement would be to clip the surface to each day's valid moneyness 
 ## Setup
 
 ```bash
-git clone https://github.com/nairvidur/meta-theta-surface
+git clone https://github.com/nairvidur/meta-theta-surface-modeling
 cd meta-theta-surface
 pip install pandas numpy matplotlib scipy yfinance seaborn
 jupyter notebook theta_surface_model_complete.ipynb
